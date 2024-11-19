@@ -34,6 +34,33 @@ button:hover {
     background-color: silver;
 }
 
+#drag-drop-area {
+    border: 2px dashed #ccc;
+    padding: 20px;
+    margin: 20px auto;
+    width: 50%;
+    text-align: center;
+    background-color: #f9f9f9;
+    transition: background-color 0.3s;
+}
+
+#drag-drop-area.drag-over {
+    background-color: #e0ffe0;
+    border-color: #45a049;
+}
+
+#drag-drop-area p {
+    color: #333;
+    font-size: 16px;
+}
+
+#file-input-trigger {
+    color: #45a049;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+
 #results {
     margin-top: 20px;
 }
