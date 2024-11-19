@@ -1,10 +1,54 @@
-const form = document.getElementById('upload-form');
-form.onsubmit = async (e) => {
-    e.preventDefault();
+const dragDropArea = document.getElementById('drag-drop-area');
+const fileInput = document.getElementById('file-input');
+const uploadButton = document.getElementById('upload-button');
+let selectedFile = null; // Variable para almacenar el archivo seleccionado
 
-    const formData = new FormData(form);
-    const response = await fetch("/upload", {
-        method: "POST",
+// Mostrar el área de drag-and-drop como activa al arrastrar un archivo
+dragDropArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dragDropArea.classList.add('drag-over');
+});
+
+dragDropArea.addEventListener('dragleave', () => {
+    dragDropArea.classList.remove('drag-over');
+});
+
+// Manejar el evento drop
+dragDropArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dragDropArea.classList.remove('drag-over');
+    selectedFile = e.dataTransfer.files[0];
+
+    if (selectedFile) {
+        dragDropArea.querySelector('p').textContent = `Archivo seleccionado: ${selectedFile.name}`;
+    }
+});
+
+// Hacer clic para seleccionar un archivo
+dragDropArea.addEventListener('click', () => {
+    fileInput.click();
+});
+
+// Manejar el cambio del input file
+fileInput.addEventListener('change', () => {
+    selectedFile = fileInput.files[0];
+    if (selectedFile) {
+        dragDropArea.querySelector('p').textContent = `Archivo seleccionado: ${selectedFile.name}`;
+    }
+});
+
+// Manejar el clic en el botón "Subir Archivo"
+uploadButton.addEventListener('click', async () => {
+    if (!selectedFile) {
+        alert('Por favor, selecciona un archivo primero.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    const response = await fetch('/upload', {
+        method: 'POST',
         body: formData
     });
 
@@ -26,7 +70,6 @@ form.onsubmit = async (e) => {
         results.innerHTML = `
             <h2>Resultados del Grafo</h2>
             <p id="peso_total">Peso total del MST: ${data.peso_total} USD</p>
-            <!-- Contenedor de los gráficos -->
             <div class="grafico-container">
                 <div class="grafico-box">
                     <h3>Grafo Completo</h3>
@@ -40,4 +83,4 @@ form.onsubmit = async (e) => {
             <a href="/">Volver a la página principal</a>
         `;
     }
-};
+});
