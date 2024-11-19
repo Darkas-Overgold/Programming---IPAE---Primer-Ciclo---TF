@@ -1,25 +1,30 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="SP">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Grafos</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='grafo.png') }}">
 </head>
 <body>
     <h1>Gestor de Grafos con Algoritmo de Kruskal</h1>
-    <!-- Formulario de carga de archivo -->
+
+    <!-- Área de arrastrar y soltar -->
+    <div id="drag-drop-area">
+        <p>Arrastra un archivo aquí o <span id="file-input-trigger">haz clic para seleccionarlo</span>.</p>
+        <input type="file" id="file-input" name="file" accept=".csv, .xlsx" hidden>
+    </div>
+
+    <!-- Botón para subir archivo -->
     <form id="upload-form" method="POST" enctype="multipart/form-data">
-        <input type="file" name="file" required>
-        <button type="submit">Subir Archivo</button>
+        <button type="button" id="upload-button">Subir Archivo</button>
     </form>
+
     <!-- Resultados del grafo -->
     <div id="results" style="display:none;">
         <h2>Resultados del Grafo</h2>
         <p id="peso_total"></p>
-        <!-- Contenedor de los gráficos -->
         <div class="grafico-container">
             <div class="grafico-box">
                 <h3>Grafo Completo</h3>
@@ -32,10 +37,12 @@
         </div>
         <a href="/">Volver a la página principal</a>
     </div>
+
     <!-- Mensaje de error -->
     <div id="error-message" style="display:none;">
         <p>No se proporcionó un archivo válido o hubo un error al procesar los datos.</p>
     </div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
