@@ -120,8 +120,18 @@ def upload_file():
     file = request.files.get("file")
     if not file:
         return jsonify({"error": "No se proporcionó un archivo"}), 400
-    resultado = procesar_archivo(file)
-    return jsonify(resultado)
+    
+    # Verificación de tipo de archivo
+    if not (file.filename.endswith('.csv') or file.filename.endswith('.xlsx')):
+        return jsonify({"error": "El archivo debe ser CSV o Excel."}), 400
+    
+    try:
+        resultado = procesar_archivo(file)
+        if "error" in resultado:
+            return jsonify({"error": resultado["error"]}), 400
+        return jsonify(resultado)
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
