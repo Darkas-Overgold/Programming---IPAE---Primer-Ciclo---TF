@@ -51,27 +51,31 @@ button:hover {
 
 .graficos-container {
     display: flex;
-    justify-content: space-around;
-    align-items: center;
+    justify-content: space-between; /* Asegura el espacio entre imágenes */
+    align-items: flex-start;
+    gap: 20px; /* Espaciado entre elementos */
     flex-wrap: wrap;
     margin-top: 20px;
+    max-width: 1200px; /* Limita el ancho total */
+    margin: 0 auto; /* Centra la galería */
 }
 
 .grafico-box {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 45%;
+    flex: 1 1 45%; /* Asegura que ocupen 45% del contenedor */
     background: white;
     border: 1px solid #ddd;
     padding: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
+    max-width: 600px; /* Asegura un ancho máximo */
 }
 
 .grafico-box img {
     width: 100%;
-    max-width: 600px;  /* Aumenta el tamaño de las imágenes */
+    max-width: 100%; /* Asegura que no sobrepasen el contenedor */
     height: auto;
     margin: 10px 0;
 }
