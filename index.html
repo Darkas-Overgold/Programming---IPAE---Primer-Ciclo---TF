@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="SP">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,39 +10,52 @@
 <body>
     <h1>Gestor de Grafos con Algoritmo de Kruskal</h1>
 
-    <!-- Área de arrastrar y soltar -->
     <div id="drag-drop-area">
         <p>Arrastra un archivo aquí o <span id="file-input-trigger">haz clic para seleccionarlo</span>.</p>
-        <input type="file" id="file-input" name="file" accept=".csv, .xlsx" hidden>
+        <input type="file" id="file-input" accept=".csv, .xlsx" hidden>
     </div>
 
-    <!-- Botón para subir archivo -->
-    <form id="upload-form" method="POST" enctype="multipart/form-data">
+    <form id="upload-form">
         <button type="button" id="upload-button">Subir Archivo</button>
     </form>
 
-    <!-- Resultados del grafo -->
     <div id="results" style="display:none;">
-        <h2>Resultados del Grafo</h2>
+        <h2>Resultados</h2>
         <p id="peso_total"></p>
-        <div class="grafico-container">
+        <div class="graficos-container">
             <div class="grafico-box">
                 <h3>Grafo Completo</h3>
-                <img id="grafo_completo" alt="Grafo Completo">
+                <div class="image-container">
+                    <img id="grafo_completo" src="#" alt="Grafo Completo">
+                    <button class="zoom-button" data-zoom="in">Zoom +</button>
+                    <button class="zoom-button" data-zoom="out">Zoom -</button>
+                </div>
             </div>
             <div class="grafico-box">
-                <h3>Árbol de Expansión Mínima (MST)</h3>
-                <img id="mst" alt="Árbol de Expansión Mínima">
+                <h3>Árbol MST</h3>
+                <div class="image-container">
+                    <img id="mst" src="#" alt="Árbol MST">
+                    <button class="zoom-button" data-zoom="in">Zoom +</button>
+                    <button class="zoom-button" data-zoom="out">Zoom -</button>
+                </div>
             </div>
         </div>
-        <a href="/">Volver a la página principal</a>
+        <a href="/">Volver</a>
     </div>
 
-    <!-- Mensaje de error -->
     <div id="error-message" style="display:none;">
-        <p>No se proporcionó un archivo válido o hubo un error al procesar los datos.</p>
+        <p>Ocurrió un error al procesar el archivo.</p>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        document.querySelectorAll('.zoom-button').forEach(button => {
+            button.addEventListener('click', event => {
+                const img = button.parentElement.querySelector('img');
+                const zoom = button.getAttribute('data-zoom');
+                const currentScale = parseFloat(img.style.transform.replace('scale(', '').replace(')', '') || 1);
+                img.style.transform = `scale(${zoom === 'in' ? currentScale + 0.1 : currentScale - 0.1})`;
+            });
+        });
+    </script>
 </body>
 </html>
