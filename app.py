@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, send_from_directory
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -9,6 +9,11 @@ app = Flask(__name__)
 # Ruta para guardar temporalmente los gráficos generados
 STATIC_DIR = os.path.join(app.root_path, "graphs")
 os.makedirs(STATIC_DIR, exist_ok=True)
+
+# Ruta para servir archivos estáticos desde la raíz
+@app.route('/<path:filename>')
+def serve_static(filename):
+    return send_from_directory(app.root_path, filename)
 
 # Rutas Flask
 @app.route("/")
