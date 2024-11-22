@@ -1,9 +1,10 @@
 const dragDropArea = document.getElementById('drag-drop-area');
 const fileInput = document.getElementById('file-input');
+const fileInputTrigger = document.getElementById('file-input-trigger'); // Nuevo selector
 const uploadButton = document.getElementById('upload-button');
-let selectedFile = null; // Variable para almacenar el archivo seleccionado
+let selectedFile = null;
 
-// Mostrar el área de drag-and-drop como activa al arrastrar un archivo
+// Mostrar el área de drag-and-drop como activa
 dragDropArea.addEventListener('dragover', (e) => {
     e.preventDefault();
     dragDropArea.classList.add('drag-over');
@@ -24,12 +25,11 @@ dragDropArea.addEventListener('drop', (e) => {
     }
 });
 
-// Hacer clic para seleccionar un archivo
-dragDropArea.addEventListener('click', () => {
+// Hacer clic en el texto o el área para seleccionar un archivo
+fileInputTrigger.addEventListener('click', () => {
     fileInput.click();
 });
 
-// Manejar el cambio del input file
 fileInput.addEventListener('change', () => {
     selectedFile = fileInput.files[0];
     if (selectedFile) {
@@ -37,7 +37,7 @@ fileInput.addEventListener('change', () => {
     }
 });
 
-// Manejar el clic en el botón "Subir Archivo"
+// Subir archivo
 uploadButton.addEventListener('click', async () => {
     if (!selectedFile) {
         alert('Por favor, selecciona un archivo primero.');
@@ -49,23 +49,20 @@ uploadButton.addEventListener('click', async () => {
 
     const response = await fetch('/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
     });
 
     const data = await response.json();
     const results = document.getElementById('results');
     const errorMessage = document.getElementById('error-message');
 
-    // Ocultar mensaje de error si todo sale bien
     errorMessage.style.display = 'none';
 
     if (data.error) {
-        // Mostrar error si el procesamiento falla
         results.style.display = 'none';
         errorMessage.style.display = 'block';
         errorMessage.innerHTML = `<p style="color: red;">${data.error}</p>`;
     } else {
-        // Mostrar los resultados si todo está bien
         results.style.display = 'block';
         results.innerHTML = `
             <h2>Resultados del Grafo</h2>
