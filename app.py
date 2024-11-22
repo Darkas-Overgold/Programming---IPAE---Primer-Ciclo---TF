@@ -1,18 +1,16 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_from_directory
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 import os
 import sqlite3
-import json
 
 app = Flask(__name__)
 
 # Configuración de directorios
-STATIC_DIR = os.path.join(app.root_path, "graphs")
+STATIC_DIR = os.path.join(app.root_path, "static", "graphs")
 os.makedirs(STATIC_DIR, exist_ok=True)
 
-# Configuración de la base de datos
 DB_PATH = os.path.join(app.root_path, "file_uploads.sql")
 
 # Inicializar base de datos
@@ -30,10 +28,8 @@ def init_db():
 
 init_db()
 
-# Procesar archivo y crear grafo
 def procesar_archivo(file):
     try:
-        # Leer archivo
         if file.filename.endswith('.csv'):
             df = pd.read_csv(file)
         elif file.filename.endswith('.xlsx'):
@@ -41,12 +37,10 @@ def procesar_archivo(file):
         else:
             raise ValueError("Formato no compatible")
 
-        # Crear grafo
         G = nx.Graph()
         for _, row in df.iterrows():
             G.add_edge(row['nodo 1'], row['nodo 2'], weight=row['costo (usd)'])
 
-        # Generar gráficos
         pos = nx.spring_layout(G)
         grafo_path = os.path.join(STATIC_DIR, "grafo_completo.png")
         mst_path = os.path.join(STATIC_DIR, "mst.png")
@@ -66,7 +60,15 @@ def procesar_archivo(file):
 
 @app.route("/")
 def index():
-    return send_file("index.html")
+    return send_from_directory('.', 'index.html')
+
+@app.route("/styles.css")
+def styles():
+    return send_from_directory('.', 'styles.css')
+
+@app.route("/grafo.png")
+def favicon():
+    return send_from_directory('.', 'grafo.png')
 
 @app.route("/upload", methods=["POST"])
 def upload_file():
@@ -84,8 +86,8 @@ def upload_file():
         return jsonify(result), 400
 
     return jsonify({
-        "grafo": f"/graphs/{os.path.basename(result['grafo'])}",
-        "mst": f"/graphs/{os.path.basename(result['mst'])}"
+        "grafo": f"/static/graphs/{os.path.basename(result['grafo'])}",
+        "mst": f"/static/graphs/{os.path.basename(result['mst'])}"
     })
 
 if __name__ == "__main__":
