@@ -1,11 +1,41 @@
-<!DOCTYPE html>
-<html lang="es">
+<!DOCTYPE HTML>
+<html lang="SP">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Grafos</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/png" href="grafo.png">
+    <link rel="icon" href="grafo.png" type="image/x-icon">
+    <style>
+        .image-container {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+
+        .image-container img {
+            transition: transform 0.2s ease;
+            transform-origin: center;
+            cursor: grab;
+        }
+
+        .zoom-button {
+            margin: 5px;
+            padding: 5px 10px;
+            border: none;
+            background-color: goldenrod;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .zoom-button:hover {
+            background-color: silver;
+        }
+    </style>
 </head>
 <body>
     <h1>Gestor de Grafos con Algoritmo de Kruskal</h1>
@@ -53,7 +83,37 @@
                 const img = button.parentElement.querySelector('img');
                 const zoom = button.getAttribute('data-zoom');
                 const currentScale = parseFloat(img.style.transform.replace('scale(', '').replace(')', '') || 1);
-                img.style.transform = `scale(${zoom === 'in' ? currentScale + 0.1 : currentScale - 0.1})`;
+                img.style.transform = `scale(${zoom === 'in' ? currentScale + 0.1 : Math.max(currentScale - 0.1, 1)})`;
+            });
+        });
+
+        document.querySelectorAll('.image-container img').forEach(img => {
+            let isPanning = false;
+            let startX, startY;
+
+            img.addEventListener('mousedown', event => {
+                isPanning = true;
+                startX = event.clientX - img.offsetLeft;
+                startY = event.clientY - img.offsetTop;
+                img.style.cursor = 'grabbing';
+            });
+
+            img.addEventListener('mousemove', event => {
+                if (isPanning) {
+                    const moveX = event.clientX - startX;
+                    const moveY = event.clientY - startY;
+                    img.style.transform = `translate(${moveX}px, ${moveY}px) ${img.style.transform.split(' ')[1] || ''}`;
+                }
+            });
+
+            img.addEventListener('mouseup', () => {
+                isPanning = false;
+                img.style.cursor = 'grab';
+            });
+
+            img.addEventListener('mouseleave', () => {
+                isPanning = false;
+                img.style.cursor = 'grab';
             });
         });
     </script>
