@@ -1,9 +1,11 @@
 const dragDropArea = document.getElementById('drag-drop-area');
 const fileInput = document.getElementById('file-input');
+const fileInputTrigger = document.getElementById('file-input-trigger');
 const uploadButton = document.getElementById('upload-button');
-let selectedFile = null; // Variable para almacenar el archivo seleccionado
+const errorMessage = document.getElementById('error-message');
+let selectedFile = null;
 
-// Mostrar el área de drag-and-drop como activa al arrastrar un archivo
+// Mostrar área activa al arrastrar un archivo
 dragDropArea.addEventListener('dragover', (e) => {
     e.preventDefault();
     dragDropArea.classList.add('drag-over');
@@ -17,70 +19,87 @@ dragDropArea.addEventListener('dragleave', () => {
 dragDropArea.addEventListener('drop', (e) => {
     e.preventDefault();
     dragDropArea.classList.remove('drag-over');
-    selectedFile = e.dataTransfer.files[0];
-
-    if (selectedFile) {
-        dragDropArea.querySelector('p').textContent = `Archivo seleccionado: ${selectedFile.name}`;
-    }
+    const file = e.dataTransfer.files[0];
+    validarArchivo(file);
 });
 
-// Hacer clic para seleccionar un archivo
-dragDropArea.addEventListener('click', () => {
+// Activar el input de archivo al hacer clic
+fileInputTrigger.addEventListener('click', () => {
     fileInput.click();
 });
 
-// Manejar el cambio del input file
+// Validar y mostrar el archivo seleccionado
 fileInput.addEventListener('change', () => {
-    selectedFile = fileInput.files[0];
-    if (selectedFile) {
-        dragDropArea.querySelector('p').textContent = `Archivo seleccionado: ${selectedFile.name}`;
-    }
+    const file = fileInput.files[0];
+    validarArchivo(file);
 });
 
-// Manejar el clic en el botón "Subir Archivo"
+// Función para validar el archivo
+function validarArchivo(file) {
+    if (file && file.type === 'text/csv') {
+        selectedFile = file;
+        dragDropArea.querySelector('p').textContent = Archivo seleccionado: ${file.name};
+        dragDropArea.classList.add('file-selected');
+        errorMessage.style.display = 'none';
+    } else {
+        alert('Por favor selecciona un archivo CSV.');
+        selectedFile = null;
+    }
+}
+
+// Subir archivo
 uploadButton.addEventListener('click', async () => {
     if (!selectedFile) {
-        alert('Por favor, selecciona un archivo primero.');
+        errorMessage.style.display = 'block';
+        errorMessage.innerHTML = <p style="color: red;">Por favor selecciona un archivo antes de subirlo.</p>;
         return;
     }
 
-    const formData = new FormData();
-    formData.append('file', selectedFile);
+    try {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
 
-    const response = await fetch('/upload', {
-        method: 'POST',
-        body: formData
-    });
+        const response = await fetch('/upload', {
+            method: 'POST',
+            body: formData,
+        });
 
-    const data = await response.json();
+        if (!response.ok) {
+            throw new Error('Error al subir el archivo.');
+        }
+
+        const data = await response.json();
+        mostrarResultados(data);
+    } catch (error) {
+        errorMessage.style.display = 'block';
+        errorMessage.innerHTML = <p style="color: red;">Hubo un error al subir el archivo. Intenta nuevamente.</p>;
+    }
+});
+
+// Mostrar resultados o errores
+function mostrarResultados(data) {
     const results = document.getElementById('results');
-    const errorMessage = document.getElementById('error-message');
 
-    // Ocultar mensaje de error si todo sale bien
     errorMessage.style.display = 'none';
 
     if (data.error) {
-        // Mostrar error si el procesamiento falla
         results.style.display = 'none';
         errorMessage.style.display = 'block';
-        errorMessage.innerHTML = `<p style="color: red;">${data.error}</p>`;
+        errorMessage.innerHTML = <p style="color: red;">${data.error}</p>;
     } else {
-        // Mostrar los resultados si todo está bien
         results.style.display = 'block';
-        results.innerHTML = `
-            <h2>Resultados del Grafo</h2>
-            <p id="peso_total">Peso total del MST: ${data.peso_total} USD</p>
-            <div class="grafico-container">
-                <div class="grafico-box">
-                    <h3>Grafo Completo</h3>
-                    <img id="grafo_completo" src="${data.grafo}" alt="Grafo Completo">
-                </div>
-                <div class="grafico-box">
-                    <h3>Árbol de Expansión Mínima (MST)</h3>
-                    <img id="mst" src="${data.mst}" alt="Árbol de Expansión Mínima">
-                </div>
-            </div>
-            <a href="/">Volver a la página principal</a>
-        `;
+        document.getElementById('peso_total').textContent = Peso total del MST: ${data.peso_total} USD;
+        document.getElementById('grafo_completo').src = data.grafo;
+        document.getElementById('mst').src = data.mst;
     }
+}
+
+// Agregar funcionalidad de zoom a las imágenes
+document.querySelectorAll('.zoom-button').forEach(button => {
+    button.addEventListener('click', () => {
+        const img = button.parentElement.querySelector('img');
+        const zoom = button.getAttribute('data-zoom');
+        const currentScale = parseFloat(img.style.transform.replace('scale(', '').replace(')', '') || 1);
+        img.style.transform = scale(${zoom === 'in' ? currentScale + 0.1 : Math.max(currentScale - 0.1, 1)});
+    });
 });
