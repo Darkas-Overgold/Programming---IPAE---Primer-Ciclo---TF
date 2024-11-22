@@ -19,7 +19,26 @@
         <button type="button" id="upload-button">Subir Archivo</button>
     </form>
 
-    <div id="error-message" style="display:none;">
+    <div id="results" style="display: none;">
+        <h2>Resultados</h2>
+        <p id="peso_total"></p>
+        <div class="graficos-container">
+            <div class="grafico-box">
+                <h3>Grafo Completo</h3>
+                <div class="image-container">
+                    <img id="grafo_completo" src="" alt="Grafo Completo">
+                </div>
+            </div>
+            <div class="grafico-box">
+                <h3>Árbol MST</h3>
+                <div class="image-container">
+                    <img id="grafo_mst" src="" alt="Árbol MST">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="error-message" style="display:none; color: red;">
         Por favor selecciona un archivo válido antes de subirlo.
     </div>
 
@@ -29,6 +48,9 @@
         const fileInputTrigger = document.getElementById('file-input-trigger');
         const uploadButton = document.getElementById('upload-button');
         const errorMessage = document.getElementById('error-message');
+        const results = document.getElementById('results');
+        const grafoCompletoImg = document.getElementById('grafo_completo');
+        const grafoMstImg = document.getElementById('grafo_mst');
         let selectedFile = null;
 
         // Mostrar área activa al arrastrar un archivo
@@ -65,7 +87,7 @@
             if (file && file.type === 'text/csv') {
                 selectedFile = file;
                 errorMessage.style.display = 'none';
-                dragDropArea.querySelector('p').textContent = `Archivo seleccionado: ${file.name}`;
+                dragDropArea.querySelector('p').textContent = Archivo seleccionado: ${file.name};
                 dragDropArea.classList.add('file-selected');
             } else {
                 alert('Por favor selecciona un archivo CSV.');
@@ -73,14 +95,37 @@
             }
         }
 
-        // Subir archivo
-        uploadButton.addEventListener('click', () => {
+        // Subir archivo y mostrar resultados
+        uploadButton.addEventListener('click', async () => {
             if (!selectedFile) {
                 errorMessage.style.display = 'block';
                 return;
             }
             errorMessage.style.display = 'none';
-            alert('Archivo listo para subir: ' + selectedFile.name);
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    errorMessage.style.display = 'block';
+                    errorMessage.textContent = data.error;
+                } else {
+                    results.style.display = 'block';
+                    document.getElementById('peso_total').textContent = Peso total del MST: ${data.peso_total};
+                    grafoCompletoImg.src = data.grafo_completo || '/static/graphs/grafo_completo.png';
+                    grafoMstImg.src = data.grafo_mst || '/static/graphs/grafo_mst.png';
+                }
+            } catch (error) {
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = 'Hubo un error al procesar el archivo. Intenta nuevamente.';
+            }
         });
     </script>
 </body>
