@@ -1,10 +1,10 @@
 const dragDropArea = document.getElementById('drag-drop-area');
 const fileInput = document.getElementById('file-input');
-const fileInputTrigger = document.getElementById('file-input-trigger'); // Nuevo selector
+const fileInputTrigger = document.getElementById('file-input-trigger');
 const uploadButton = document.getElementById('upload-button');
 let selectedFile = null;
 
-// Mostrar el área de drag-and-drop como activa
+// Mostrar área activa al arrastrar un archivo
 dragDropArea.addEventListener('dragover', (e) => {
     e.preventDefault();
     dragDropArea.classList.add('drag-over');
@@ -64,20 +64,18 @@ uploadButton.addEventListener('click', async () => {
         errorMessage.innerHTML = `<p style="color: red;">${data.error}</p>`;
     } else {
         results.style.display = 'block';
-        results.innerHTML = `
-            <h2>Resultados del Grafo</h2>
-            <p id="peso_total">Peso total del MST: ${data.peso_total} USD</p>
-            <div class="grafico-container">
-                <div class="grafico-box">
-                    <h3>Grafo Completo</h3>
-                    <img id="grafo_completo" src="${data.grafo}" alt="Grafo Completo">
-                </div>
-                <div class="grafico-box">
-                    <h3>Árbol de Expansión Mínima (MST)</h3>
-                    <img id="mst" src="${data.mst}" alt="Árbol de Expansión Mínima">
-                </div>
-            </div>
-            <a href="/">Volver a la página principal</a>
-        `;
+        document.getElementById('peso_total').textContent = `Peso total del MST: ${data.peso_total} USD`;
+        document.getElementById('grafo_completo').src = data.grafo;
+        document.getElementById('mst').src = data.mst;
     }
+});
+
+// Agregar funcionalidad de zoom a las imágenes
+document.querySelectorAll('.zoom-button').forEach(button => {
+    button.addEventListener('click', () => {
+        const img = button.parentElement.querySelector('img');
+        const zoom = button.getAttribute('data-zoom');
+        const currentScale = parseFloat(img.style.transform.replace('scale(', '').replace(')', '') || 1);
+        img.style.transform = `scale(${zoom === 'in' ? currentScale + 0.1 : Math.max(currentScale - 0.1, 1)})`;
+    });
 });
