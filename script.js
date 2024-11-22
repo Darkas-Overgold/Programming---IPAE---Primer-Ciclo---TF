@@ -3,11 +3,7 @@ const dragDropArea = document.getElementById('drag-drop-area');
 const fileInput = document.getElementById('file-input');
 const fileInputTrigger = document.getElementById('file-input-trigger');
 const uploadButton = document.getElementById('upload-button');
-const errorMessage = document.getElementById('error-message');
-const results = document.getElementById('results');
-const grafoCompletoImg = document.getElementById('grafo_completo');
-const grafoMstImg = document.getElementById('grafo_mst');
-let selectedFile = null;
+let selectedFile = null; // Variable para almacenar el archivo seleccionado
 
 // Mostrar área activa al arrastrar un archivo
 dragDropArea.addEventListener('dragover', (e) => {
@@ -22,74 +18,72 @@ dragDropArea.addEventListener('dragleave', () => {
 
 // Manejar el evento drop
 dragDropArea.addEventListener('drop', (e) => {
-    e.preventDefault(); // Prevenir el comportamiento predeterminado
-    dragDropArea.classList.remove('drag-over'); // Eliminar resaltado
-    const file = e.dataTransfer.files[0]; // Obtener el primer archivo
-    validarArchivo(file); // Validar el archivo
+    e.preventDefault();
+    dragDropArea.classList.remove('drag-over');
+    selectedFile = e.dataTransfer.files[0];
+
+    if (selectedFile) {
+        dragDropArea.querySelector('p').textContent = `Archivo seleccionado: ${selectedFile.name}`;
+    }
 });
 
-// Activar el input de archivo al hacer clic
-fileInputTrigger.addEventListener('click', () => {
-    fileInput.click(); // Simular clic en el input de archivo
+// Hacer clic para seleccionar un archivo
+dragDropArea.addEventListener('click', () => {
+    fileInput.click();
 });
 
 // Validar y mostrar el archivo seleccionado
 fileInput.addEventListener('change', () => {
-    const file = fileInput.files[0]; // Obtener el archivo seleccionado
-    validarArchivo(file); // Validar el archivo
+    selectedFile = fileInput.files[0];
+    if (selectedFile) {
+        dragDropArea.querySelector('p').textContent = `Archivo seleccionado: ${selectedFile.name}`;
+    }
 });
 
-// Función para validar el archivo
-function validarArchivo(file) {
-    // Verificar que el archivo sea CSV
-    if (file && (file.type === 'text/csv' || file.name.endsWith('.csv'))) {
-        selectedFile = file; // Almacenar el archivo seleccionado
-        dragDropArea.querySelector('p').textContent = `Archivo seleccionado: ${file.name}`;
-        dragDropArea.classList.add('file-selected'); // Añadir clase al área
-        errorMessage.style.display = 'none'; // Ocultar mensajes de error
-    } else {
-        // Mensaje de error si el archivo no es válido
-        alert('Por favor selecciona un archivo CSV.');
-        selectedFile = null; // Limpiar archivo seleccionado
-    }
-}
-
-// Subir archivo
+// Manejar el clic en el botón "Subir Archivo"
 uploadButton.addEventListener('click', async () => {
     if (!selectedFile) {
-        errorMessage.style.display = 'block'; // Mostrar error si no hay archivo
+        alert('Por favor, selecciona un archivo primero.');
         return;
     }
 
     const formData = new FormData();
-    formData.append('file', selectedFile); // Añadir archivo a FormData
+    formData.append('file', selectedFile);
 
-    try {
-        const response = await fetch('/upload', {
-            method: 'POST',
-            body: formData,
-        });
+    const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData
+    });
 
-        const data = await response.json(); // Obtener respuesta del servidor
-        mostrarResultados(data); // Mostrar resultados
-    } catch (error) {
-        errorMessage.style.display = 'block'; // Mostrar error de carga
-        errorMessage.innerHTML = '<p style="color: red;">Hubo un error al subir el archivo. Intenta nuevamente.</p>';
-    }
-});
+    const data = await response.json();
+    const results = document.getElementById('results');
+    const errorMessage = document.getElementById('error-message');
 
-// Mostrar resultados o errores
-function mostrarResultados(data) {
-    errorMessage.style.display = 'none'; // Ocultar mensaje de error al mostrar resultados
+    // Ocultar mensaje de error si todo sale bien
+    errorMessage.style.display = 'none';
 
     if (data.error) {
-        results.style.display = 'none'; // Ocultar resultados si hay error
-        errorMessage.style.display = 'block'; // Mostrar mensaje de error
+        // Mostrar error si el procesamiento falla
+        results.style.display = 'none';
+        errorMessage.style.display = 'block';
         errorMessage.innerHTML = `<p style="color: red;">${data.error}</p>`;
     } else {
-        results.style.display = 'block'; // Mostrar resultados
-        document.getElementById('peso_total').textContent = `Peso total del MST: ${data.peso_total}`;
-        grafoCompletoImg.src = data.grafo_completo || 'static/graphs/grafo_completo.png'; // Cargar la imagen del grafo completo
-        grafoMstImg.src = data.grafo_mst || 'static/graphs/grafo_mst.png'; // Cargar la imagen del MST
+        // Mostrar los resultados si todo está bien
+        results.style.display = 'block';
+        results.innerHTML = `
+            <h2>Resultados del Grafo</h2>
+            <p id="peso_total">Peso total del MST: ${data.peso_total} USD</p>
+            <div class="grafico-container">
+                <div class="grafico-box">
+                    <h3>Grafo Completo</h3>
+                    <img id="grafo_completo" src="${data.grafo}" alt="Grafo Completo">
+                </div>
+                <div class="grafico-box">
+                    <h3>Árbol de Expansión Mínima (MST)</h3>
+                    <img id="mst" src="${data.mst}" alt="Árbol de Expansión Mínima">
+                </div>
+            </div>
+            <a href="/">Volver a la página principal</a>
+        `;
     }
-}
+});

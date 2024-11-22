@@ -1,14 +1,20 @@
-from flask import Flask, request, jsonify, send_from_directory
-import os
+from flask import Flask, request, jsonify, send_file
 import pandas as pd
 import sqlite3
 import networkx as nx
 import matplotlib.pyplot as plt
+import os
+import sqlite3
+import json
 
 app = Flask(__name__)
-STATIC_DIR = os.path.join(app.root_path, "static", "graphs")
+
+# Configuración de directorios
+STATIC_DIR = os.path.join(app.root_path, "graphs")
 os.makedirs(STATIC_DIR, exist_ok=True)
-DB_PATH = os.path.join(app.root_path, "file_uploads.db")
+
+# Configuración de la base de datos
+DB_PATH = os.path.join(app.root_path, "file_uploads.sql")
 
 def init_db() -> None:
     """Inicializa la base de datos y crea la tabla de uploads si no existe."""
@@ -29,14 +35,10 @@ def init_db() -> None:
 
 init_db()
 
-def validar_columnas(df: pd.DataFrame, required_columns: list) -> dict:
-    """Valida si el DataFrame contiene las columnas requeridas."""
-    missing_columns = [col for col in required_columns if col not in df.columns]
-    return {"error": f"El archivo debe contener las columnas: {', '.join(missing_columns)}."} if missing_columns else {}
-
-def procesar_archivo(file) -> dict:
-    """Procesa el archivo subido y genera gráficos a partir de él."""
+# Procesar archivo y crear grafo
+def procesar_archivo(file):
     try:
+        # Leer archivo
         if file.filename.endswith('.csv'):
             df = pd.read_csv(file)
         elif file.filename.endswith('.xlsx'):
@@ -44,28 +46,14 @@ def procesar_archivo(file) -> dict:
         else:
             return {"error": "Formato no compatible. Por favor sube un archivo .csv o .xlsx."}
 
-        required_columns = ['Nodo 1', 'Nodo 2', 'Costo (usd)', 'Distancia (km)', 'Longitud (km)', 'Grosor (cm)']
-        validation_result = validar_columnas(df, required_columns)
-        if validation_result:
-            return validation_result
-
-        return generar_graficos(df, file.filename)
-
-    except Exception as e:
-        return {"error": f"Ocurrió un error al procesar el archivo: {str(e)}"}
-
-def generar_graficos(df: pd.DataFrame, filename: str) -> dict:
-    """Genera gráficos a partir del DataFrame y guarda las imágenes."""
-    try:
+        # Crear grafo
         G = nx.Graph()
         for _, row in df.iterrows():
             G.add_edge(row['Nodo 1'], row['Nodo 2'], 
                        distance=row['Distancia (km)'], length=row['Longitud (km)'],
                        thickness=row['Grosor (cm)'], cost=row['Costo (usd)'])
 
-        grafo_path = os.path.join(STATIC_DIR, f"grafo_{os.path.splitext(filename)[0]}.png")
-        mst_path = os.path.join(STATIC_DIR, f"mst_{os.path.splitext(filename)[0]}.png")
-
+        # Generar gráficos
         pos = nx.spring_layout(G)
         nx.draw(G, pos, with_labels=True)
         plt.savefig(grafo_path)
@@ -87,13 +75,7 @@ def favicon():
 
 @app.route("/")
 def index():
-    """Ruta principal que devuelve el index.html."""
-    return send_from_directory('.', 'index.html')
-
-@app.route("/styles.css")
-def styles():
-    """Ruta para devolver el archivo CSS."""
-    return send_from_directory('.', 'styles.css')
+    return send_file("index.html")
 
 @app.route("/upload", methods=["POST"])
 def upload_file():
@@ -113,20 +95,10 @@ def upload_file():
         if "error" in result:
             return jsonify(result), 400
 
-        # Actualizar la base de datos con las rutas de los gráficos
-        with sqlite3.connect(DB_PATH) as conn:
-            cursor = conn.cursor()
-            cursor.execute("UPDATE uploads SET graph_path = ?, mst_path = ? WHERE id = ?",
-                           (result['grafo'], result['mst'], upload_id))
-            conn.commit()
-
-        return jsonify({
-            "message": "Archivo procesado exitosamente.",
-            "grafo": f"/static/graphs/{os.path.basename(result['grafo'])}",
-            "mst": f"/static/graphs/{os.path.basename(result['mst'])}"
-        })
-    except Exception as e:
-        return jsonify({"error": f"Ocurrió un error al subir el archivo: {str(e)}"}), 500
+    return jsonify({
+        "grafo": f"/graphs/{os.path.basename(result['grafo'])}",
+        "mst": f"/graphs/{os.path.basename(result['mst'])}"
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)
