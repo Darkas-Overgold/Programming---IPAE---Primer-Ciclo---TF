@@ -47,45 +47,6 @@
         <p>Ocurrió un error al procesar el archivo.</p>
     </div>
 
-    <script>
-        document.querySelectorAll('.zoom-button').forEach(button => {
-            button.addEventListener('click', event => {
-                const img = button.parentElement.querySelector('img');
-                const zoom = button.getAttribute('data-zoom');
-                const currentScale = parseFloat(img.style.transform.replace('scale(', '').replace(')', '') || 1);
-                img.style.transform = `scale(${zoom === 'in' ? currentScale + 0.1 : Math.max(currentScale - 0.1, 1)})`;
-            });
-        });
-
-        document.querySelectorAll('.image-container img').forEach(img => {
-            let isPanning = false;
-            let startX, startY;
-
-            img.addEventListener('mousedown', event => {
-                isPanning = true;
-                startX = event.clientX - img.offsetLeft;
-                startY = event.clientY - img.offsetTop;
-                img.style.cursor = 'grabbing';
-            });
-
-            img.addEventListener('mousemove', event => {
-                if (isPanning) {
-                    const moveX = event.clientX - startX;
-                    const moveY = event.clientY - startY;
-                    img.style.transform = `translate(${moveX}px, ${moveY}px) ${img.style.transform.split(' ')[1] || ''}`;
-                }
-            });
-
-            img.addEventListener('mouseup', () => {
-                isPanning = false;
-                img.style.cursor = 'grab';
-            });
-
-            img.addEventListener('mouseleave', () => {
-                isPanning = false;
-                img.style.cursor = 'grab';
-            });
-        });
-    </script>
+    <script src="scripts.js"></script>
 </body>
 </html>
