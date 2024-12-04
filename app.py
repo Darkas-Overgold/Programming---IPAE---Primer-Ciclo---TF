@@ -121,7 +121,7 @@ def index():
     """Ruta principal que devuelve el archivo index.html."""
     return send_file("index.html")
 @app.route("/")
-def index():
+def styles():
     """Ruta principal que devuelve el archivo styles.css."""
     return send_file("styles.css")
 
